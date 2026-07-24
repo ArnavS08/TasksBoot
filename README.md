@@ -1,6 +1,7 @@
 # TasksBoot
 
 A lightweight, stay-on-top desktop widget which helps you set a direction for each working session.
+<img width="406" height="214" alt="Screenshot 2026-07-24 150401" src="https://github.com/user-attachments/assets/ef8db34e-f8d1-41ec-bb16-d103bd0686c0" />
 
 ## Features
 * **Stay-on-Top Boot Sequence**: On startup, the widget positions itself in the top-right corner of the screen and stays on top of all other windows until the session task is decided.
@@ -8,6 +9,8 @@ A lightweight, stay-on-top desktop widget which helps you set a direction for ea
   * **Ladder Animation**: A custom step-by-step sorting animation that moves the focused task up to the top.
   * **Shuffle Animation**: A sequence that chooses a random task for you if none were designated.
 * **Task Editor**: Add, delete, edit, or focus tasks.
+ <img width="568" height="497" alt="image" src="https://github.com/user-attachments/assets/4cc2d395-73e9-4a17-80e7-0e62a752ea88" />
+ 
 * **Hotkeys**:
   * `Alt + T`: Toggle/Show TasksBoot main window.
   * `Alt + E`: Open the Task Editor.
