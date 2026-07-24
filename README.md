@@ -24,13 +24,12 @@ Below are the visual walkthroughs demonstrating how the boot sequence, animation
 ### Shuffle Selection Animation
 When the application starts and no task is focused, a random shuffling sequence executes to designate a task:
 
-![Shuffle Selection Animation](<img width="131" height="153" alt="axdcug" src="https://github.com/user-attachments/assets/d3a17e72-48f2-4b21-a3e9-7596a9b52786" />) 
+<img src="https://github.com/user-attachments/assets/d3a17e72-48f2-4b21-a3e9-7596a9b52786" width="131" alt="Shuffle Selection Animation" />
 
-
-###  Ladder Animation
+### Ladder Animation
 When a task is selected or pre-focused, it lights up green and steps through the list until it sits at the top:
 
-![Ladder Animation](<img width="120" height="151" alt="axdcl2" src="https://github.com/user-attachments/assets/ea7f58d1-a502-44c1-a04c-e4fe1f6e21a4" />)
+<img src="https://github.com/user-attachments/assets/ea7f58d1-a502-44c1-a04c-e4fe1f6e21a4" width="120" alt="Ladder Animation" />
 
 
 ---
