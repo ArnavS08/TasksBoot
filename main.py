@@ -28,13 +28,21 @@ class FramelessWindow(QWidget):
         self.title_label = QLabel("TasksBoot", self)
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
         self.title_label.setObjectName("titleLabel")
-
+        
+       
         # Close button
         self.close_btn = QPushButton("✕", self)
         self.close_btn.setObjectName("closeButton")
         self.close_btn.clicked.connect(self.close)
 
         layout.addWidget(self.title_label)
+         # tasks
+        self.list_tasks = self.read_data(self.get_data())
+        for task in self.list_tasks:
+                    task_label = QLabel(task, self)
+                    task_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+                    task_label.setObjectName("taskLabel")
+                    layout.addWidget(task_label)
         layout.addWidget(self.close_btn)
 
         self.setLayout(layout)
@@ -64,9 +72,17 @@ class FramelessWindow(QWidget):
                 background-color: #ff5555;
                 border-radius: 5px;
             }}
+            #taskLabel {{
+                color: white;
+                font-family: "Comfortaa";
+                font-size: 14px;
+                padding: 5px;
+                bold: true;
+            }}
         """
         self.setStyleSheet(style)
-
+       
+        
     # Dragging
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -80,6 +96,40 @@ class FramelessWindow(QWidget):
 
     def mouseReleaseEvent(self, event):
         self._old_pos = None
+        
+    # get data from tasks.json
+    def get_data(self) -> str | None:
+        try:
+            with open("tasks.json", "r") as f:
+                data = f.read()
+                return data
+        except FileNotFoundError:
+            return None
+    def read_data(self, data) -> list[str]:
+        if data is None:
+            return []
+        try:
+            import json
+            tasks_data = json.loads(data)
+            if isinstance(tasks_data, dict) and "tasks" in tasks_data:
+                tasks = tasks_data["tasks"]
+            elif isinstance(tasks_data, list):
+                tasks = tasks_data
+            else:
+                return []
+
+            list_of_tasks = []
+            for task in tasks:
+                if isinstance(task, dict):
+                    if "name" in task:
+                        list_of_tasks.append(task["name"])
+                    elif "task" in task:
+                        list_of_tasks.append(task["task"])
+            return list_of_tasks
+        except json.JSONDecodeError:
+            return []
+    
+    
 
 
 if __name__ == "__main__":
