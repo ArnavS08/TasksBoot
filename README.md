@@ -30,7 +30,7 @@ When the application starts and no task is focused, a random shuffling sequence 
 ###  Ladder Animation
 When a task is selected or pre-focused, it lights up green and steps through the list until it sits at the top:
 
-![Ladder Animation](https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=400&q=80)
+![Ladder Animation](https://imgflip.com/gif/axdcl2)
 
 
 ---
