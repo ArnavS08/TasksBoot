@@ -40,14 +40,11 @@ GIF still in progress
 ---
 
 ## Setup & Run
-
-### Method 1: Download the Release Build (Easiest)
 1. Open the project's [GitHub Releases page](https://github.com/ArnavS08/TasksBoot/releases).
 2. Download the latest Windows `.exe` asset from the newest release.
 3. Double-click it to launch TasksBoot instantly. You can move or copy this file to your Desktop or anywhere else.
 
-### Method 2: Run from Python Source
-If you want to run it from source:
+If you want to run it from the source:
 1. Make sure PySide6 and keyboard library are installed in your environment:
    ```bash
    pip install PySide6 keyboard
@@ -57,7 +54,6 @@ If you want to run it from source:
    python main.py
    ```
 
-### Method 3: Re-compiling the Executable Yourself
 If you modify the source files and want to rebuild the `.exe`:
 ```bash
 pip install pyinstaller
@@ -65,4 +61,3 @@ pyinstaller --noconsole --onefile --add-data "assets;assets" --add-data "tasks.j
 ```
 The compiled output will update inside the `dist/` folder.
 
-For distribution, I recommend uploading the built `.exe` to a GitHub Release instead of committing `dist/` into the repository. That keeps the repo language stats accurate and gives users a cleaner download path.
