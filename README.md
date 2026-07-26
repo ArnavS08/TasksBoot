@@ -44,7 +44,8 @@ GIF still in progress
 2. Download the latest Windows `.exe` asset from the newest release.
 3. Double-click it to launch TasksBoot instantly. You can move or copy this file to your Desktop or anywhere else.
 
-If you want to run it from the source:
+
+If you want to run it from source:
 1. Make sure PySide6 and keyboard library are installed in your environment:
    ```bash
    pip install PySide6 keyboard
@@ -60,4 +61,5 @@ pip install pyinstaller
 pyinstaller --noconsole --onefile --add-data "assets;assets" --add-data "tasks.json;." main.py
 ```
 The compiled output will update inside the `dist/` folder.
+
 
