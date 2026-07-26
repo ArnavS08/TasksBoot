@@ -6,7 +6,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
 import os
 
-from storage import load_tasks_from_file, save_tasks_to_file
+from storage import load_tasks_from_file, save_tasks_to_file, is_startup_enabled, set_startup_enabled
 
 
 class TaskEditorWindow(QWidget):
@@ -58,6 +58,10 @@ class TaskEditorWindow(QWidget):
         self.focused_input = QCheckBox("Mark as Focused (only one task will be focused)", self)
         form_layout.addWidget(self.focused_input)
 
+        self.startup_input = QCheckBox("Launch TasksBoot on startup", self)
+        self.startup_input.setChecked(is_startup_enabled())
+        form_layout.addWidget(self.startup_input)
+
         button_layout = QHBoxLayout()
         self.new_btn = QPushButton("New Task", self)
         self.new_btn.clicked.connect(self.clear_form)
@@ -86,6 +90,7 @@ class TaskEditorWindow(QWidget):
         self.description_input.clear()
         self.priority_input.setCurrentIndex(1)
         self.focused_input.setChecked(False)
+        self.startup_input.setChecked(is_startup_enabled())
 
     def load_tasks(self):
         self.tasks = load_tasks_from_file(self.tasks_path)
@@ -144,7 +149,6 @@ class TaskEditorWindow(QWidget):
             self.tasks.append(task_obj)
             current = len(self.tasks) - 1
 
-        # Re-render list display to show *FOCUSED* tags correctly
         self.task_list.clear()
         for task in self.tasks:
             lbl = task.get("task") or task.get("name") or "Untitled"
@@ -167,7 +171,8 @@ class TaskEditorWindow(QWidget):
         try:
             save_tasks_to_file(self.tasks_path, self.tasks)
             QMessageBox.information(self, "Saved", "Tasks saved successfully.")
-            # notify any FramelessWindow instances to reload tasks
+            set_startup_enabled(self.startup_input.isChecked())
+            # notify any FramelessWindow instances to reload tasks - need to check this
             for w in QApplication.topLevelWidgets():
                 try:
                     if isinstance(w, FramelessWindow):
@@ -203,4 +208,3 @@ class TaskEditorWindow(QWidget):
         }}
         """
         self.setStyleSheet(style)
-

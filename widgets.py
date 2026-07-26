@@ -38,6 +38,10 @@ class TaskItem(QWidget):
         self.animation.setEndValue(1.0)
         self.animation.setEasingCurve(QEasingCurve.InOutQuad)
 
+    def get_description(self) -> str:
+        description = self.task_data.get("description", "")
+        return description.strip() if isinstance(description, str) else ""
+
     def update_style(self):
         font_style = f"font-family: '{self.font_family}';" if self.font_family else ""
         if self.focused:
@@ -57,3 +61,17 @@ class TaskItem(QWidget):
             self.animation.start()
         else:
             QTimer.singleShot(delay_ms, self.animation.start)
+            
+    def enterEvent(self, event): 
+        self.set_highlighted(True)
+        parent_window = self.window()
+        if hasattr(parent_window, "show_task_preview"):
+            parent_window.show_task_preview(self, self.get_description())
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        parent_window = self.window()
+        if hasattr(parent_window, "hide_task_preview"):
+            parent_window.hide_task_preview()
+        self.set_highlighted(self.focused)
+        super().leaveEvent(event)

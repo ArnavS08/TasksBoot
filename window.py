@@ -1,10 +1,10 @@
 import os
 
 from PySide6.QtGui import QFontDatabase, QIcon, QPixmap, QColor, QAction
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QApplication, QSystemTrayIcon, QMenu
-from PySide6.QtCore import Qt, QTimer, Slot
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QApplication, QSystemTrayIcon, QMenu, QFrame
+from PySide6.QtCore import Qt, QTimer, Slot, QPoint
 
-from storage import get_data, read_data, load_tasks_from_file, save_tasks_to_file
+from storage import get_data, read_data, load_tasks_from_file, save_tasks_to_file, get_tasks_storage_path
 from widgets import TaskItem
 from editor import TaskEditorWindow
 
@@ -14,6 +14,7 @@ class FramelessWindow(QWidget):
         super().__init__()
 
         font_path = os.path.join(os.path.dirname(__file__), "assets", "PressStart2P-Regular.ttf")
+        icon_path = os.path.join(os.path.dirname(__file__), "assets", "taskbootlogo.ico")
         font_id = QFontDatabase.addApplicationFont(font_path)
         if font_id == -1:
             print(f"path: {font_path}")
@@ -32,6 +33,7 @@ class FramelessWindow(QWidget):
 
         self.font_family = font_family
         self.task_font_family = task_font_family
+        self.setWindowIcon(QIcon(icon_path))
         # Position window in the top-right corner of the screen
         screen = QApplication.primaryScreen().geometry()
         self.resize(400, 200)
@@ -43,6 +45,7 @@ class FramelessWindow(QWidget):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window | Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_StyledBackground, True)
         self._old_pos = None
+        self.preview_popup = None
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
@@ -72,7 +75,14 @@ class FramelessWindow(QWidget):
                 self.parent_window._old_pos = None
 
         self.title_bar = TitleBar(self)
-        self.tasks_path = os.path.join(os.path.dirname(__file__), "tasks.json")
+        self.tasks_path = get_tasks_storage_path()
+        if not os.path.exists(self.tasks_path):
+            bundled_tasks = os.path.join(os.path.dirname(__file__), "tasks.json")
+            try:
+                import shutil
+                shutil.copyfile(bundled_tasks, self.tasks_path)
+            except Exception:
+                pass
         self.list_tasks = load_tasks_from_file(self.tasks_path)
         self.task_items = []
         layout.addWidget(self.title_bar)
@@ -107,16 +117,67 @@ class FramelessWindow(QWidget):
         self.apply_styles()
         QTimer.singleShot(1000, self.run_focus_animation_sequence)
 
-        # Register global hotkeys using keyboard library
         try:
             import keyboard
             from PySide6.QtCore import QMetaObject, Slot
-            
-            # Using lambda with invokeMethod ensures the callback is safely executed on the Qt GUI main thread
+    
             keyboard.add_hotkey('alt+t', lambda: QMetaObject.invokeMethod(self, "toggle_window_slot"))
             keyboard.add_hotkey('alt+e', lambda: QMetaObject.invokeMethod(self, "open_task_editor_slot"))
         except Exception as e:
             print("ok")
+
+    def ensure_preview_popup(self):
+        if self.preview_popup is not None:
+            return self.preview_popup
+
+        popup = QFrame(None, Qt.ToolTip | Qt.FramelessWindowHint)
+        popup.setObjectName("taskPreviewPopup")
+        popup.setAttribute(Qt.WA_ShowWithoutActivating, True)
+        popup.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        popup.setFrameShape(QFrame.Shape.StyledPanel)
+        popup.setFrameShadow(QFrame.Shadow.Plain)
+
+        layout = QVBoxLayout(popup)
+        layout.setContentsMargins(10, 8, 10, 8)
+        layout.setSpacing(0)
+
+        title = QLabel("Task description", popup)
+        title.setObjectName("taskPreviewTitle")
+        body = QLabel("", popup)
+        body.setObjectName("taskPreviewBody")
+        body.setWordWrap(True)
+        body.setMinimumWidth(220)
+        body.setMaximumWidth(280)
+        body.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+        layout.addWidget(title)
+        layout.addWidget(body)
+        popup.title_label = title
+        popup.body_label = body
+        popup.hide()
+        self.preview_popup = popup
+        return popup
+
+    def show_task_preview(self, task_item, description: str):
+        popup = self.ensure_preview_popup()
+        popup.title_label.setText(task_item.label.text())
+        popup.body_label.setText(description or "No description provided.")
+        popup.adjustSize()
+
+        offset = QPoint(18, 0)
+        global_pos = task_item.mapToGlobal(task_item.rect().topLeft())
+        popup_width = popup.sizeHint().width()
+        x = global_pos.x() - popup_width - offset.x()
+        y = global_pos.y() + offset.y() - 6
+        if x < 10:
+            x = global_pos.x() + task_item.width() + offset.x()
+        popup.move(x, y)
+        popup.show()
+        popup.raise_()
+
+    def hide_task_preview(self):
+        if self.preview_popup is not None:
+            self.preview_popup.hide()
     
     @Slot()
     def toggle_window_slot(self):
@@ -175,6 +236,22 @@ class FramelessWindow(QWidget):
                 font-size: 14px;
                 padding: 5px;
                 font-weight: bold;
+            }}
+            #taskPreviewPopup {{
+                background-color: #202020;
+                border: 1px solid #555;
+                border-radius: 8px;
+            }}
+            #taskPreviewTitle {{
+                color: #55ff55;
+                font-family: "{self.font_family}";
+                font-size: 11px;
+                padding-bottom: 4px;
+            }}
+            #taskPreviewBody {{
+                color: #f2f2f2;
+                font-family: "{self.task_font_family}", sans-serif;
+                font-size: 12px;
             }}
         """
         self.setStyleSheet(style)
@@ -235,7 +312,7 @@ class FramelessWindow(QWidget):
                 self.show()
 
         self.ladder_timer.timeout.connect(step)
-        self.ladder_timer.start(500)  # Slower step (500ms) for smoother visual flow
+        self.ladder_timer.start(1000)
 
     def perform_shuffle_animation(self):
         import random
@@ -302,9 +379,8 @@ class FramelessWindow(QWidget):
         QTimer.singleShot(1000, self.run_focus_animation_sequence)
 
     def create_tray_icon(self) -> QSystemTrayIcon:
-        pixmap = QPixmap(16, 16)
-        pixmap.fill(QColor("#ff5555"))
-        icon = QIcon(pixmap)
+        icon_path = os.path.join(os.path.dirname(__file__), "assets", "taskbootlogo.ico")
+        icon = QIcon(icon_path)
 
         tray = QSystemTrayIcon(icon, self)
         menu = QMenu(self)
